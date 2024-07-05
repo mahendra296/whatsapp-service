@@ -10,12 +10,9 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class Message {
+public class WhatsappButtonsMessageHeader {
     private WhatsappMediaType type;
     private String text;
-    private String caption;
-    private String url;
-    private String id;
-    private String title;
-    private String description;
+    private String mediaUrl;
+    private String filename;
 }

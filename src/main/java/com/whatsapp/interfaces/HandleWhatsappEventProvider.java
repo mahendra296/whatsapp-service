@@ -12,6 +12,5 @@ public interface HandleWhatsappEventProvider {
             String inputButtonClick,
             WhatsappMediaType inputMessageType,
             String inputMediaUrl,
-            String whatsappEvent
-    );
+            String whatsappEvent);
 }

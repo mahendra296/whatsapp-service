@@ -1,6 +1,5 @@
 package com.whatsapp.dto.request;
 
-import com.whatsapp.enumclass.WhatsappMediaType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -10,12 +9,13 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class Message {
-    private WhatsappMediaType type;
-    private String text;
-    private String caption;
-    private String url;
+public class Button {
+    private String type = "REPLY";
     private String id;
     private String title;
-    private String description;
+
+    public Button(String id, String title) {
+        this.id = id;
+        this.title = title;
+    }
 }

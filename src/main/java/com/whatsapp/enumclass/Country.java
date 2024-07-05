@@ -11,7 +11,9 @@ public enum Country {
     ESWATINI("+268", "sz", 8 + 3, "Eswatini"),
     KENYA("+254", "ke", 9 + 3, "Kenya"),
     RWANDA("+250", "rw", 10 + 3, "Rwanda"),
-    TANZANIA("+255", "tz", 10 + 3, "Tanzania");
+    TANZANIA("+255", "tz", 10 + 3, "Tanzania"),
+    INDIA("+091", "IN", 10 + 3, "India"),
+    USA("+447", "US", 10 + 3, "India");
 
     private final String phoneCode;
     private final String twoLetterISO;
@@ -68,4 +70,3 @@ public enum Country {
         throw new IllegalArgumentException("Invalid phoneNumber: " + phoneNumber);
     }
 }
-

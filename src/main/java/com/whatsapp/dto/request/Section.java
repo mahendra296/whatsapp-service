@@ -10,8 +10,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class InfoBipIncomingWhatsappDTO {
-    private List<Result> results;
-    private int messageCount;
-    private int pendingMessageCount;
+public class Section {
+    private String title;
+    private List<Row> rows;
 }

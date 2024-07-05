@@ -20,4 +20,3 @@ public class Result {
     private Message message;
     private Price price;
 }
-

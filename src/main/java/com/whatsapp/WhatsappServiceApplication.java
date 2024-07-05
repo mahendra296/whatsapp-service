@@ -2,14 +2,13 @@ package com.whatsapp;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
+import org.springframework.cloud.openfeign.EnableFeignClients;
 
 @SpringBootApplication
-@EnableJpaRepositories
+@EnableFeignClients
 public class WhatsappServiceApplication {
 
-	public static void main(String[] args) {
-		SpringApplication.run(WhatsappServiceApplication.class, args);
-	}
-
+    public static void main(String[] args) {
+        SpringApplication.run(WhatsappServiceApplication.class, args);
+    }
 }

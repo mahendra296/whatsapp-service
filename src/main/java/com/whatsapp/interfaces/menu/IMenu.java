@@ -1,7 +1,6 @@
 package com.whatsapp.interfaces.menu;
 
 import com.whatsapp.dto.response.WhatsappMessage;
-
 import java.util.HashMap;
 
 public interface IMenu {

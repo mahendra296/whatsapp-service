@@ -27,5 +27,3 @@ public enum WhatsappMediaType {
         return value;
     }
 }
-
-

@@ -1,6 +1,5 @@
 package com.whatsapp.dto.response;
 
-import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -10,8 +9,10 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class ProcessWhatsappMessageResponse {
-    private String msisdn;
-    private List<MessageObject> messages;
-    private boolean shouldEndSession;
+public class InfoBipDocumentStatusResponse {
+    private Integer groupId;
+    private String groupName;
+    private Integer id;
+    private String name;
+    private String description;
 }

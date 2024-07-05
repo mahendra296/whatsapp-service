@@ -1,6 +1,5 @@
 package com.whatsapp.dto.request;
 
-import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -10,8 +9,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class InfoBipIncomingWhatsappDTO {
-    private List<Result> results;
-    private int messageCount;
-    private int pendingMessageCount;
+public class Sms {
+    private String text;
+    private String senderName;
 }

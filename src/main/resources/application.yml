@@ -1,0 +1,48 @@
+#spring:
+#  datasource:
+#    url: jdbc:postgresql://${POSTGRES_HOST:localhost}:${POSTGRES_PORT:5432}/${POSTGRES_DB:testdb}
+#    driver-class-name: org.postgresql.Driver
+#    username: ${DB_USERNAME:postgres}
+#    password: ${DB_PASSWORD:root}
+#  jpa:
+#    database-platform: org.hibernate.dialect.PostgreSQLDialect
+#    hibernate:
+#      ddl-auto: ${JPA_DDL_AUTO:none}
+#    show-sql: ${JPA_SHOW_SQL:false}
+
+
+spring:
+  datasource:
+    url: jdbc:mysql://${MYSQL_HOST:localhost}:${MYSQL_PORT:3306}/${MYSQL_DB:jwtdb}?createDatabaseIfNotExist=true
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD:root}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    hibernate:
+      ddl-auto: ${JPA_DDL_AUTO:none}
+    show-sql: ${JPA_SHOW_SQL:false}
+
+redis:
+  hostname: localhost
+  port: 6380
+  auth-token: ""
+  database: 0
+
+app:
+  redis:
+    enable: false
+
+whatsapp:
+  infobip:
+    url: ${INFOBIP_BASE_URL:https://gg83ee.api.infobip.com}
+    sms:
+      delay: 1500
+  infobipApiKey: ${INFOBIP_API_KEY:633942215629d35d992abc3e4555ca39-0c8a8868-7ac1-49b7-a934-40683a8152bf}
+  app-base-url: https://e6ba-2402-8100-2682-8faa-c52e-1920-7a61-fd50.ngrok-free.app
+  settings:
+    countries:
+      india:
+        phone-number: "447860099299"
+        start-keywords: "hi,hello,hey,HELOO"
+        defaultTerminateMessage: ""
+        scenarioKey: ${INFOBIP_SCENARIO_KEY:5F1FFDB61EEA8B8E81C22BEB852F8812}
