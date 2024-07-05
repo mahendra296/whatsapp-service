@@ -20,4 +20,7 @@ public class MessageObject {
     private InteractiveListMessage interactiveListMessage;
     private String footer;
 
+    public MessageObject(String message) {
+        this.message = message;
+    }
 }

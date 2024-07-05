@@ -1,19 +1,26 @@
 package com.whatsapp.controller;
 
+import com.whatsapp.config.CountrySettingsConfig;
 import com.whatsapp.constant.AppConstants;
-import com.whatsapp.dto.request.InfoBipIncomingWhatsappDTO;
-import com.whatsapp.dto.request.Result;
+import com.whatsapp.dto.request.*;
 import com.whatsapp.dto.response.InfoBipIncomingWhatsappResponse;
+import com.whatsapp.dto.response.InfoBipOutgoingWhatsappResponse;
+import com.whatsapp.dto.response.MessageObject;
+import com.whatsapp.dto.response.ProcessWhatsappMessageResponse;
+import com.whatsapp.entity.APIResult;
 import com.whatsapp.enumclass.Country;
 import com.whatsapp.enumclass.WhatsappMediaType;
 import com.whatsapp.interfaces.HandleWhatsappEventProvider;
+import com.whatsapp.interfaces.infobip.InfoBipWhatsappManagerAdapter;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/v1")
@@ -21,6 +28,14 @@ import java.util.List;
 public class WhatsappController {
 
     private final HandleWhatsappEventProvider handleWhatsappEventProvider;
+    private final InfoBipWhatsappManagerAdapter infobipWhatsappManagerAdapter;
+    private final CountrySettingsConfig countrySettingsConfig;
+    @Value("${whatsapp.app-base-url}")
+    private String appBaseUrl;
+    @Value("${whatsapp.infobipApiKey}")
+    private String infoBipApiKey;
+    @Value("${whatsapp.infobip.sms.delay}")
+    private Long infoSendSmsDelayInSeconds;
     private static final Logger log =   LoggerFactory.getLogger(WhatsappController.class);
     static final int COUNTRY_CODE_LENGTH = 3;
     static final String COUNTRY_CODE_PREFIX = "+";
@@ -84,45 +99,108 @@ public class WhatsappController {
 
             // based on the return from the process, send response to phone
             processPageResponse.getMessages().forEach(message -> {
-                /*try {
-                    val sendInteractiveButtonFeatureFlag = flagProvider.isFeatureEnabled(
-                            "SEND_NEW_MENU_MESSAGE",
-                            Country.valueOf(country)
-                    )
-                    if (!it.actionButtons.isNullOrEmpty() && sendInteractiveButtonFeatureFlag) {
-                        val infobipOutgoingButtonOutgoingDto =
-                                prepareWhatsappButtonMessage(it, country, processPageResponse)
-                        log.info("Sending interactive button message to Infobip: EventsType:  $infobipOutgoingButtonOutgoingDto")
-                        sendInteractiveButtonMessage(infobipOutgoingButtonOutgoingDto)
-                        if (it.mediaUrl != null) {
-                            TimeUnit.MILLISECONDS.sleep(infoSendSmsDelayInSeconds)
+                try {
+                    if (message.getActionButtons() != null && !message.getActionButtons().isEmpty()) {
+                        var infobipOutgoingButtonOutgoingDto =
+                                prepareWhatsappButtonMessage(message, country, processPageResponse);
+                        log.info("Sending interactive button message to Infobip: EventsType: {}", infobipOutgoingButtonOutgoingDto);
+                        sendInteractiveButtonMessage(infobipOutgoingButtonOutgoingDto);
+                        if (message.getMediaUrl() != null) {
+                            TimeUnit.MILLISECONDS.sleep(infoSendSmsDelayInSeconds);
                         }
-                    } else if (it.mediaType == WhatsappMediaType.INTERACTIVE_LIST_REPLY) {
-                        val infobipInteractiveListReplyOutgoingDto =
-                                prepareInteractiveListMessage(it, country, processPageResponse)
-                        log.info("Sending interactive button message to Infobip: $infobipInteractiveListReplyOutgoingDto")
-                        sendInteractiveListMessage(infobipInteractiveListReplyOutgoingDto)
-                        TimeUnit.MILLISECONDS.sleep(infoSendSmsDelayInSeconds)
-                    } else if (it.mediaType == WhatsappMediaType.DOCUMENT && LOAN_DOCUMENTS.contains(it.message)) {
-                        val infoBipDocumentOutgoingDto =
-                                prepareDocumentMessage(it, country, processPageResponse)
-                        log.info("Sending document message to InfoBip: $infoBipDocumentOutgoingDto")
-                        sendDocumentMessage(infoBipDocumentOutgoingDto)
-                        TimeUnit.MILLISECONDS.sleep(infoSendSmsDelayInSeconds)
+                    } else if (message.getMediaType() == WhatsappMediaType.INTERACTIVE_LIST_REPLY) {
+                        var infobipInteractiveListReplyOutgoingDto =
+                                prepareInteractiveListMessage(message, country, processPageResponse);
+                        log.info("Sending interactive button message to Infobip: {}", infobipInteractiveListReplyOutgoingDto);
+                        sendInteractiveListMessage(infobipInteractiveListReplyOutgoingDto);
+                        TimeUnit.MILLISECONDS.sleep(infoSendSmsDelayInSeconds);
+                    } else if (message.getMediaType() == WhatsappMediaType.DOCUMENT) {
+                        var infoBipDocumentOutgoingDto =
+                                prepareDocumentMessage(message, country, processPageResponse);
+                        log.info("Sending document message to InfoBip: {}", infoBipDocumentOutgoingDto);
+                        sendDocumentMessage(infoBipDocumentOutgoingDto);
+                        TimeUnit.MILLISECONDS.sleep(infoSendSmsDelayInSeconds);
                     } else {
-                        val whatsappOutgoingMessage = prepareOutMessage(it)
-                        log.info("\n\nSending to Infobip: EventsType:  $whatsappEventType || Message: \n${it.message}\n")
-                        sendToInfobip(country, processPageResponse, whatsappOutgoingMessage)
-                        TimeUnit.MILLISECONDS.sleep(infoSendSmsDelayInSeconds)
+                        var whatsappOutgoingMessage = prepareOutMessage(message);
+                        log.info("\n\nSending to Infobip: EventsType : {} || Message: \n {}\n", whatsappEventType, message.getMessage());
+                        sendToInfobip(country, processPageResponse, whatsappOutgoingMessage);
+                        TimeUnit.MILLISECONDS.sleep(infoSendSmsDelayInSeconds);
                     }
                 } catch (Exception ex) {
-                    log.error("Error while send whatsapp message", ex)
-                }*/
+                    log.error("Error while send whatsapp message", ex);
+                }
             });
         } catch (Exception exception) {
             //we catch here to continue for other input objects
             log.error("Exception occurred : ${exception.errorMsg} for input: $input", exception);
         }
+    }
+
+    private WhatsApp prepareOutMessage(MessageObject processedMsg) {
+        WhatsApp outMsg = new WhatsApp();
+        String url = appBaseUrl + processedMsg.getMediaUrl();
+        switch (processedMsg.getMediaType()) {
+            case IMAGE:
+                outMsg.setImageUrl(url);
+                break;
+            case AUDIO:
+                outMsg.setAudioUrl(url);
+                break;
+            case VIDEO:
+                outMsg.setVideoUrl(url);
+                break;
+            case DOCUMENT:
+                outMsg.setFileUrl(url);
+                break;
+            default:
+                log.info("For {}, it's not required to set URL", processedMsg.getMediaType());
+                break;
+        }
+        outMsg.setText(processedMsg.getMessage());
+        return outMsg;
+    }
+
+    private void sendDocumentMessage(InfoBipDocumentOutGoingDto infoBipDocumentOutgoingDto) {
+        infobipWhatsappManagerAdapter.sendDocumentMessage(
+                infoBipApiKey,
+                infoBipDocumentOutgoingDto
+        );
+    }
+
+    private InfoBipInteractiveOutGoingDto prepareInteractiveListMessage(MessageObject processedMsg, String country, ProcessWhatsappMessageResponse processPageResponse) {
+        if (processedMsg.getInteractiveListMessage() == null || processedMsg.getInteractiveListMessage().getListSections().isEmpty()) {
+            throw new RuntimeException("Error");
+        }
+
+        List<Section> sections = processedMsg.getInteractiveListMessage().getListSections().stream()
+                .map(section -> new Section(
+                        section.getTitle(),
+                        section.getRows().stream()
+                                .map(row -> new Row(
+                                        generateButtonId(row.getTitle()),
+                                        trimListTittleTo24Chars(row.getTitle()),
+                                        row.getDescription()
+                                ))
+                                .collect(Collectors.toList())
+                ))
+                .collect(Collectors.toList());
+
+        Content content = new Content(
+                new WhatsappInteractiveButtonMessageBody(processedMsg.getMessage()),
+                new WhatsappInteractiveButtonAction(sections, processedMsg.getInteractiveListMessage().getTitle()),
+                null,
+                null
+        );
+
+        var countrySettings = countrySettingsConfig.getCountries().get(country);
+        String from = countrySettings != null ? countrySettings.getPhoneNumber() : null;
+
+        return new InfoBipInteractiveOutGoingDto(
+                from != null ? from : "",
+                processPageResponse.getMsisdn(),
+                null,
+                content
+        );
     }
 
     private String getEventType(String country, String inputMessage) {
@@ -136,5 +214,116 @@ public class WhatsappController {
     private List<String> getStartKeywords(String country) {
         var startKeywords = "hi,hello,hey";
         return List.of(startKeywords.trim().toLowerCase().split(","));
+    }
+
+    public InfoBipInteractiveOutGoingDto prepareWhatsappButtonMessage(MessageObject processedMsg, String country, ProcessWhatsappMessageResponse processPageResponse) {
+        WhatsappButtonsMessageHeader header = prepareInteractiveButtonMessageHeader(processedMsg);
+        List<Button> buttons = processedMsg.getActionButtons().stream()
+                .map(it -> new Button(generateButtonId(it), it))
+                .collect(Collectors.toList());
+        Content content = new Content(
+                new WhatsappInteractiveButtonMessageBody(processedMsg.getMessage()),
+                new WhatsappInteractiveButtonAction(buttons, null, null),
+                header,
+                null
+        );
+        String from = countrySettingsConfig.getCountries().get(country).getPhoneNumber();
+        return new InfoBipInteractiveOutGoingDto(
+                from,
+                processPageResponse.getMsisdn(),
+                null,
+                content
+        );
+    }
+
+    public void sendInteractiveButtonMessage(InfoBipInteractiveOutGoingDto infobipInteractiveOutGoingdto) {
+        APIResult<InfoBipOutgoingWhatsappResponse> result = infobipWhatsappManagerAdapter.sendInteractiveButtonMessage(
+                infoBipApiKey,
+                infobipInteractiveOutGoingdto
+        );
+
+        // Handle the result as needed
+        if (result.isSuccess()) {
+            InfoBipOutgoingWhatsappResponse response = result.getData();
+        } else {
+            String errorMessage = result.getMessage();
+        }
+    }
+    public void sendInteractiveListMessage(InfoBipInteractiveOutGoingDto infobipInteractiveOutGoingdto) {
+        infobipWhatsappManagerAdapter.sendInteractiveListMessage(
+                infoBipApiKey,
+                infobipInteractiveOutGoingdto
+        );
+    }
+
+
+    public static String generateButtonId(String buttonText) {
+        return buttonText.toUpperCase(Locale.ENGLISH).replaceAll("\\s", "_");
+    }
+
+    private String trimListTittleTo24Chars(String title) {
+        if (title.length() > 24) {
+            return title.substring(0, 20) + "...";
+        }
+        return title;
+    }
+    public WhatsappButtonsMessageHeader prepareInteractiveButtonMessageHeader(MessageObject processedMsg) {
+        String url = appBaseUrl + processedMsg.getMediaUrl();
+
+        switch (processedMsg.getMediaType()) {
+            case IMAGE:
+            case AUDIO:
+            case VIDEO:
+            case DOCUMENT:
+                return new WhatsappButtonsMessageHeader(
+                        processedMsg.getMediaType(),
+                        null, // text
+                        url, // mediaUrl
+                        null // filename
+                );
+            default:
+                return null;
+        }
+    }
+    public InfoBipDocumentOutGoingDto prepareDocumentMessage(
+            MessageObject processedMsg,
+            String country,
+            ProcessWhatsappMessageResponse processPageResponse) {
+
+        String mediaUrl = processedMsg.getMediaUrl();
+        String filename = processedMsg.getMessage();
+        String caption = processedMsg.getMessage();
+
+        var countrySettings = countrySettingsConfig.getCountries().get(country);
+        String from = countrySettings != null ? countrySettings.getPhoneNumber() : null;
+
+        return new InfoBipDocumentOutGoingDto(
+                from,
+                processPageResponse.getMsisdn(),
+                null,
+                new DocumentContent(mediaUrl, filename, caption)
+        );
+    }
+
+    public void sendToInfobip(
+            String country,
+            ProcessWhatsappMessageResponse processPageResponse,
+            WhatsApp whatsappOutgoingMessage
+    ) {
+        String scenarioKey = countrySettingsConfig.getCountries().get(country).getScenarioKey();
+        if (scenarioKey == null || scenarioKey.isEmpty()) {
+            scenarioKey = null;
+        }
+
+        Destination destination = new Destination(new To(processPageResponse.getMsisdn()));
+        List<Destination> destinationsList = Collections.singletonList(destination);
+
+        InfoBipOutgoingWhatsappDto infobipOutgoingDto = new InfoBipOutgoingWhatsappDto(
+                scenarioKey,
+                destinationsList,
+                whatsappOutgoingMessage
+        );
+
+        infobipWhatsappManagerAdapter.sendMessage(infoBipApiKey, infobipOutgoingDto);
     }
 }

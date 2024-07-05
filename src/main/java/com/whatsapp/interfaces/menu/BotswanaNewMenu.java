@@ -1,6 +1,7 @@
 package com.whatsapp.interfaces.menu;
 
 import com.whatsapp.constant.WhatsappMessageDataLabels;
+import com.whatsapp.constant.WhatsappMessageEventConstants;
 import com.whatsapp.constant.WhatsappMessageLabels;
 import com.whatsapp.dto.response.MessageObject;
 import com.whatsapp.dto.response.WhatsappMessage;
@@ -8,6 +9,7 @@ import com.whatsapp.enumclass.WhatsappMediaType;
 import com.whatsapp.enumclass.WhatsappMessageType;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -19,6 +21,7 @@ public class BotswanaNewMenu implements IMenu {
     @Override
     public HashMap<String, WhatsappMessage> getMenuMap() {
         menuMap.put(WhatsappMessageLabels.WELCOME_MESSAGE_NWC, getWelcomeMessageWithEnterName());
+
         return menuMap;
     }
 
@@ -46,4 +49,30 @@ public class BotswanaNewMenu implements IMenu {
         whatsappMessage.setDataLabel(WhatsappMessageDataLabels.PREFERRED_CUSTOMER_NAME);
         return whatsappMessage;
     }
+
+    private WhatsappMessage getGenericErrorEndMenu() {
+        var whatsappMessage = new WhatsappMessage();
+
+        List<MessageObject> messages = new ArrayList<>();
+
+        MessageObject messageObject = new MessageObject();
+        MessageObject messageObject1 = new MessageObject();
+        messageObject.setMediaType(WhatsappMediaType.TEXT);
+        messageObject.setMessage("*Dear valued customer* \n" +
+                "We seem to have encountered a technical issue \n\n" +
+                WhatsappMessageEventConstants.CONTACT_US_TEXT_BW);
+
+        messageObject1.setMediaType(WhatsappMediaType.TEXT);
+        messageObject1.setMessage(WhatsappMessageEventConstants.END_MESSAGE);
+        messages.add(messageObject);
+        messages.add(messageObject1);
+
+        whatsappMessage.setMessages(messages);
+        whatsappMessage.setEvents("events");
+        whatsappMessage.setType(WhatsappMessageType.DIALOG);
+        whatsappMessage.setTerminal(true);
+
+        return whatsappMessage;
+    }
+
 }
