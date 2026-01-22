@@ -1,6 +1,7 @@
 package com.whatsapp.dto.response;
 
 import com.whatsapp.enumclass.WhatsappMessageType;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -20,13 +21,23 @@ public class WhatsappMessage {
     private String preInputEvents;
     private String events;
     private String dataLabel;
-    private Map<String, String> buttonActions;
-    private Map<String, String> inputActions;
-    private Set<String> validInputs;
+
+    @Builder.Default
+    private Map<String, String> buttonActions = Collections.emptyMap();
+
+    @Builder.Default
+    private Map<String, String> inputActions = Collections.emptyMap();
+
+    @Builder.Default
+    private Set<String> validInputs = Collections.emptySet();
+
     private boolean isDynamicInputActions;
     private String backWhatsappMessageLabel;
     private boolean isTerminal;
     private String nextPageLabel;
-    private Map<String, String> metadata;
+
+    @Builder.Default
+    private Map<String, String> metadata = Collections.emptyMap();
+
     private boolean saveInputWithOptionType;
 }

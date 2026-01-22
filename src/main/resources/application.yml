@@ -37,12 +37,12 @@ whatsapp:
     url: ${INFOBIP_BASE_URL:https://gg83ee.api.infobip.com}
     sms:
       delay: 1500
-  infobipApiKey: ${INFOBIP_API_KEY:633942215629d35d992abc3e4555ca39-0c8a8868-7ac1-49b7-a934-40683a8152bf}
-  app-base-url: https://e6ba-2402-8100-2682-8faa-c52e-1920-7a61-fd50.ngrok-free.app
+  infobipApiKey: ${INFOBIP_API_KEY:e60a30e7ca0cfda3e69d}
+  app-base-url: https://phyllotactical-valeri-unelusively.ngrok-free.dev
   settings:
     countries:
       india:
-        phone-number: "447860099299"
-        start-keywords: "hi,hello,hey,HELOO"
+        phone-number: "447860088970"
+        start-keywords: "hi,hello,hey,HELLO"
         defaultTerminateMessage: ""
-        scenarioKey: ${INFOBIP_SCENARIO_KEY:5F1FFDB61EEA8B8E81C22BEB852F8812}
+        scenarioKey: ${INFOBIP_SCENARIO_KEY:DA05E3E276BFE}

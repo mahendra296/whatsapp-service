@@ -47,7 +47,7 @@ public class WhatsappController {
     @PostMapping("/webhook/infobip-whatsapp/incoming-message")
     public InfoBipIncomingWhatsappResponse handleIncomingWhatsappMessage(
             @RequestBody InfoBipIncomingWhatsappDTO request) {
-        log.info("Request details dto request : ", request.toString());
+        log.info("Request details dto request : {}", request.toString());
 
         InfoBipIncomingWhatsappResponse response = new InfoBipIncomingWhatsappResponse("success");
 

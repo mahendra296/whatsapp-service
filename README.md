@@ -578,6 +578,352 @@ All requests return a success response:
 
 ---
 
+## Infobip API Reference
+
+These are the Infobip APIs used by this service. Replace `{BASE_URL}` with your Infobip API base URL (e.g., `https://gg83ee.api.infobip.com`) and `{API_KEY}` with your Infobip API key.
+
+### 1. Create Scenario Key
+
+Creates a new scenario for WhatsApp messaging. The scenario key is required for sending outbound messages.
+
+**cURL:**
+```bash
+curl -X POST 'https://{BASE_URL}/omni/1/scenarios' \
+  --header 'Authorization: App {API_KEY}' \
+  --header 'Content-Type: application/json' \
+  --data '{
+    "name": "New Scenario Name",
+    "flow": [
+        {
+            "from": "447860088970",
+            "channel": "WHATSAPP"
+        }
+    ]
+}'
+```
+
+**Response:**
+```json
+{
+  "key": "your-generated-scenario-key",
+  "name": "New Scenario Name",
+  "flow": [
+    {
+      "from": "447860088970",
+      "channel": "WHATSAPP"
+    }
+  ],
+  "default": false
+}
+```
+
+---
+
+### 2. Send WhatsApp Interactive Buttons
+
+Sends an interactive message with reply buttons.
+
+#### Option 1: Omni API
+
+**Endpoint:** `POST /omni/1/advanced`
+
+**cURL:**
+```bash
+curl -X POST 'https://{BASE_URL}/omni/1/advanced' \
+  --header 'Authorization: App {API_KEY}' \
+  --header 'Content-Type: application/json' \
+  --data '{
+    "scenarioKey": "{SCENARIO_KEY}",
+    "destinations": [
+        {
+            "to": {
+                "phoneNumber": "919876543210"
+            }
+        }
+    ],
+    "whatsApp": {
+        "type": "BUTTONS",
+        "content": {
+            "body": "Please select an option:",
+            "buttons": [
+                {
+                    "type": "REPLY",
+                    "id": "OPTION_1",
+                    "title": "Option 1"
+                },
+                {
+                    "type": "REPLY",
+                    "id": "OPTION_2",
+                    "title": "Option 2"
+                }
+            ]
+        }
+    }
+}'
+```
+
+#### Option 2: Direct WhatsApp API
+
+**Endpoint:** `POST /whatsapp/1/message/interactive/buttons`
+
+**cURL:**
+```bash
+curl -X POST 'https://{BASE_URL}/whatsapp/1/message/interactive/buttons' \
+  --header 'Authorization: App {API_KEY}' \
+  --header 'Content-Type: application/json' \
+  --data '{
+    "from": "447860099299",
+    "to": "919876543210",
+    "messageId": "unique-message-id-123",
+    "content": {
+        "body": {
+            "text": "Please select an option:"
+        },
+        "action": {
+            "buttons": [
+                {
+                    "type": "REPLY",
+                    "id": "OPTION_1",
+                    "title": "Option 1"
+                },
+                {
+                    "type": "REPLY",
+                    "id": "OPTION_2",
+                    "title": "Option 2"
+                },
+                {
+                    "type": "REPLY",
+                    "id": "OPTION_3",
+                    "title": "Option 3"
+                }
+            ]
+        },
+        "header": {
+            "type": "TEXT",
+            "text": "Welcome Header"
+        },
+        "footer": {
+            "text": "Footer text here"
+        }
+    }
+}'
+```
+
+**Request Fields (Option 2):**
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `from` | String | Yes | WhatsApp business phone number |
+| `to` | String | Yes | Recipient phone number |
+| `messageId` | String | No | Unique message identifier |
+| `content.body.text` | String | Yes | Main message text |
+| `content.action.buttons` | Array | Yes | List of buttons (max 3) |
+| `content.action.buttons[].type` | String | Yes | Button type (always "REPLY") |
+| `content.action.buttons[].id` | String | Yes | Unique button identifier |
+| `content.action.buttons[].title` | String | Yes | Button display text (max 20 chars) |
+| `content.header.type` | String | No | Header type (TEXT, IMAGE, VIDEO, DOCUMENT) |
+| `content.header.text` | String | No | Header text (when type is TEXT) |
+| `content.header.mediaUrl` | String | No | Media URL (when type is IMAGE/VIDEO/DOCUMENT) |
+| `content.footer.text` | String | No | Footer text |
+
+---
+
+### 3. Send WhatsApp Interactive List
+
+Sends an interactive message with a list of selectable options.
+
+#### Option 1: Omni API
+
+**Endpoint:** `POST /omni/1/advanced`
+
+**cURL:**
+```bash
+curl -X POST 'https://{BASE_URL}/omni/1/advanced' \
+  --header 'Authorization: App {API_KEY}' \
+  --header 'Content-Type: application/json' \
+  --data '{
+    "scenarioKey": "{SCENARIO_KEY}",
+    "destinations": [
+        {
+            "to": {
+                "phoneNumber": "919876543210"
+            }
+        }
+    ],
+    "whatsApp": {
+        "type": "LIST",
+        "content": {
+            "body": "Please select from the list:",
+            "action": {
+                "title": "View Options",
+                "sections": [
+                    {
+                        "title": "Section 1",
+                        "rows": [
+                            {
+                                "id": "ROW_1",
+                                "title": "First Option",
+                                "description": "Description for first option"
+                            },
+                            {
+                                "id": "ROW_2",
+                                "title": "Second Option",
+                                "description": "Description for second option"
+                            }
+                        ]
+                    }
+                ]
+            }
+        }
+    }
+}'
+```
+
+#### Option 2: Direct WhatsApp API
+
+**Endpoint:** `POST /whatsapp/1/message/interactive/list`
+
+**cURL:**
+```bash
+curl -X POST 'https://{BASE_URL}/whatsapp/1/message/interactive/list' \
+  --header 'Authorization: App {API_KEY}' \
+  --header 'Content-Type: application/json' \
+  --data '{
+    "from": "447860099299",
+    "to": "919876543210",
+    "messageId": "unique-message-id-456",
+    "content": {
+        "body": {
+            "text": "Please select from the list below:"
+        },
+        "action": {
+            "title": "View Options",
+            "sections": [
+                {
+                    "title": "Account Services",
+                    "rows": [
+                        {
+                            "id": "CHECK_BALANCE",
+                            "title": "Check Balance",
+                            "description": "View your current account balance"
+                        },
+                        {
+                            "id": "MINI_STATEMENT",
+                            "title": "Mini Statement",
+                            "description": "Get last 5 transactions"
+                        }
+                    ]
+                },
+                {
+                    "title": "Support",
+                    "rows": [
+                        {
+                            "id": "CONTACT_SUPPORT",
+                            "title": "Contact Support",
+                            "description": "Speak with a customer service agent"
+                        },
+                        {
+                            "id": "FAQ",
+                            "title": "FAQ",
+                            "description": "View frequently asked questions"
+                        }
+                    ]
+                }
+            ]
+        },
+        "header": {
+            "type": "TEXT",
+            "text": "Main Menu"
+        },
+        "footer": {
+            "text": "Reply with option number or tap to select"
+        }
+    }
+}'
+```
+
+**Request Fields (Option 2):**
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `from` | String | Yes | WhatsApp business phone number |
+| `to` | String | Yes | Recipient phone number |
+| `messageId` | String | No | Unique message identifier |
+| `content.body.text` | String | Yes | Main message text |
+| `content.action.title` | String | Yes | Button text to open list (max 20 chars) |
+| `content.action.sections` | Array | Yes | List sections (max 10 sections) |
+| `content.action.sections[].title` | String | Yes | Section title |
+| `content.action.sections[].rows` | Array | Yes | List items in section (max 10 rows total) |
+| `content.action.sections[].rows[].id` | String | Yes | Unique row identifier |
+| `content.action.sections[].rows[].title` | String | Yes | Row title (max 24 chars) |
+| `content.action.sections[].rows[].description` | String | No | Row description (max 72 chars) |
+| `content.header.type` | String | No | Header type (TEXT only for lists) |
+| `content.header.text` | String | No | Header text |
+| `content.footer.text` | String | No | Footer text |
+
+---
+
+### 4. Send WhatsApp Document
+
+Sends a document (PDF, DOC, etc.) to a WhatsApp user.
+
+#### Option 1: Omni API
+
+**Endpoint:** `POST /omni/1/advanced`
+
+**cURL:**
+```bash
+curl -X POST 'https://{BASE_URL}/omni/1/advanced' \
+  --header 'Authorization: App {API_KEY}' \
+  --header 'Content-Type: application/json' \
+  --data '{
+    "scenarioKey": "{SCENARIO_KEY}",
+    "destinations": [
+        {
+            "to": {
+                "phoneNumber": "919876543210"
+            }
+        }
+    ],
+    "whatsApp": {
+        "type": "DOCUMENT",
+        "mediaUrl": "https://example.com/document.pdf",
+        "caption": "Here is your document"
+    }
+}'
+```
+
+#### Option 2: Direct WhatsApp API
+
+**Endpoint:** `POST /whatsapp/1/message/document`
+
+**cURL:**
+```bash
+curl -X POST 'https://{BASE_URL}/whatsapp/1/message/document' \
+  --header 'Authorization: App {API_KEY}' \
+  --header 'Content-Type: application/json' \
+  --data '{
+    "from": "447860099299",
+    "to": "919876543210",
+    "messageId": "unique-message-id-789",
+    "content": {
+        "mediaUrl": "https://example.com/documents/statement.pdf",
+        "filename": "Account_Statement_2024.pdf",
+        "caption": "Here is your account statement for January 2024"
+    }
+}'
+```
+
+**Request Fields (Option 2):**
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `from` | String | Yes | WhatsApp business phone number |
+| `to` | String | Yes | Recipient phone number |
+| `messageId` | String | No | Unique message identifier |
+| `content.mediaUrl` | String | Yes | URL of the document to send |
+| `content.filename` | String | Yes | Display filename for the document |
+| `content.caption` | String | No | Caption text for the document |
+
+---
+
 ## Supported Message Types
 
 | Type | Description |

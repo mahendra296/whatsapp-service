@@ -23,6 +23,7 @@ public class BotswanaNewMenu implements IMenu {
         menuMap.put(WhatsappMessageLabels.WELCOME_MESSAGE_NWC, getWelcomeMessageWithEnterName());
         menuMap.put(WhatsappMessageLabels.BEGIN_SESSION_EVENTS, getBeginSession());
         menuMap.put(WhatsappMessageLabels.WELCOME_MESSAGE, getWelcomeMessage());
+        menuMap.put(WhatsappMessageLabels.HI_USER_MESSAGE, getHiUserMessage());
 
         return menuMap;
     }
@@ -37,9 +38,10 @@ public class BotswanaNewMenu implements IMenu {
 
         MessageObject messageObject = new MessageObject();
         messageObject.setMediaType(WhatsappMediaType.TEXT);
-        messageObject.setMessage("Welcome to Letshego");
+        messageObject.setMessage("Welcome to Sysout");
 
         whatsappMessage.setType(WhatsappMessageType.INPUT);
+        whatsappMessage.setMessages(List.of(messageObject));
         whatsappMessage.setEvents("CheckCustomerConsent");
         whatsappMessage.setDataLabel("beginEntryPoint");
         return whatsappMessage;
@@ -52,7 +54,20 @@ public class BotswanaNewMenu implements IMenu {
                         .message("*Hi!*\nWhat is your name?")
                         .build()))
                 .type(WhatsappMessageType.INPUT)
-                .events("inputDataValidation,goToNextMessage,searchCustomerInDB")
+                .events("goToNextMessage")
+                .dataLabel(WhatsappMessageDataLabels.PREFERRED_CUSTOMER_NAME)
+                .build();
+        return whatsappMessage;
+    }
+
+    private WhatsappMessage getHiUserMessage() {
+        var whatsappMessage = WhatsappMessage.builder()
+                .messages(List.of(MessageObject.builder()
+                        .mediaType(WhatsappMediaType.TEXT)
+                        .message("*Hi!*\n {{preferredCustomerName}}")
+                        .build()))
+                .type(WhatsappMessageType.INPUT)
+                .preInputEvents("setUserNameEvent")
                 .dataLabel(WhatsappMessageDataLabels.PREFERRED_CUSTOMER_NAME)
                 .build();
         return whatsappMessage;

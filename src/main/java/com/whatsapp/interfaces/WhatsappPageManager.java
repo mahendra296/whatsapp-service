@@ -70,6 +70,7 @@ public class WhatsappPageManager implements HandleWhatsappEventProvider {
             WhatsappMediaType inputMessageType,
             String inputMediaUrl,
             String whatsappEvent) {
+
         if (Objects.equals(inputMessage, "####")) {
             clearCustomerDataEvent.processPageEvent(msisdn, country, new WhatsappMessage());
             MessageObject messageObject = new MessageObject();
@@ -135,7 +136,7 @@ public class WhatsappPageManager implements HandleWhatsappEventProvider {
     public String getCustomerStartMenu(String msisdn, String country) {
         // get the begin session Whatsapp messages
         WhatsappMessage beginSessionEventsWhatsappMessage =
-                (WhatsappMessage) this.getWhatsappMenuMessage(country, WhatsappMessageLabels.BEGIN_SESSION_EVENTS);
+                this.getWhatsappMenuMessage(country, WhatsappMessageLabels.BEGIN_SESSION_EVENTS);
 
         // fire the begin session events
         fireMessageEvents(msisdn, country, beginSessionEventsWhatsappMessage, WhatsappMessageEventType.POST_INPUT);
@@ -220,9 +221,15 @@ public class WhatsappPageManager implements HandleWhatsappEventProvider {
             return errorOccurredMessage(msisdn, messageLabel);
         }
 
+        if (whatsappMessage.getDataLabel() != null) {
+            whatsappMessageService.saveCustomerFormDataField(
+                    msisdn, country, whatsappMessage.getDataLabel(), whatsappInputMessage);
+        }
+
         // handle buttonActions here
         String currentMessageLabel = whatsappMessageService.getCustomerCurrentPage(msisdn, country);
-        if (whatsappMessage.getButtonActions().containsKey(inputButtonClick)) {
+        if (whatsappMessage.getButtonActions() != null
+                && whatsappMessage.getButtonActions().containsKey(inputButtonClick)) {
             messageLabel = whatsappMessage.getButtonActions().get(inputButtonClick);
             if (whatsappMessage.getEvents() != null && messageLabel != null && whatsappMessage.getDataLabel() != null) {
                 whatsappMessageService.saveCustomerFormDataField(
@@ -239,7 +246,8 @@ public class WhatsappPageManager implements HandleWhatsappEventProvider {
         log.info("[" + msisdn + "]User has entered the input: " + whatsappInputMessage);
 
         // handle inputActions here
-        if (whatsappMessage.getInputActions().containsKey(whatsappInputMessage.toUpperCase())
+        if (whatsappMessage.getInputActions() != null
+                && whatsappMessage.getInputActions().containsKey(whatsappInputMessage.toUpperCase())
                 && !whatsappMessage.isDynamicInputActions()) {
             messageLabel = whatsappMessage.getInputActions().get(whatsappInputMessage.toUpperCase());
             if (whatsappMessage.getEvents() != null && messageLabel != null && whatsappMessage.getDataLabel() != null) {
